@@ -41,9 +41,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     if not db_user or not auth.verify_password(form_data.password, db_user.password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    token = auth.create_token({"user_id": db_user.id},
-                              SECRET_KEY,
-                              algorithm="HS256")
+    token = auth.create_token({"user_id": db_user.id})
 
     return {
         "access_token": token,

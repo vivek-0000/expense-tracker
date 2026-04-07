@@ -4,6 +4,7 @@ from database import SessionLocal
 import models
 from pydantic import BaseModel
 from fastapi import Depends, HTTPException
+from auth import get_current_user
 
 
 router = APIRouter()
@@ -28,20 +29,25 @@ def get_db():
         db.close()
 
 
-from auth import get_current_user
+
 
 # POST → Add expense
 @router.post("/expenses")
-def add_expense(expense: ExpenseCreate,user_id: int = Depends(get_current_user),  db: Session = Depends(get_db)):
+def add_expense(
+    expense: ExpenseCreate,
+    user_id: int = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     new_expense = models.Expense(
         **expense.dict(),
         user_id=user_id   # ✅ IMPORTANT
     )
-    db_expense = models.Expense(**expense.dict())
-    db.add(db_expense)
+
+    db.add(new_expense)
     db.commit()
-    db.refresh(db_expense)
-    return db_expense
+    db.refresh(new_expense)
+
+    return new_expense
 
 @router.get("/expenses")
 def get_expenses(
